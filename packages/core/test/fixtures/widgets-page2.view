@@ -1,0 +1,8 @@
+<div id="e2e-page2">Page 2 — nav count seen here: <span id="e2e-page2-count">{{count}}</span></div>
+
+<settings>
+{
+    layout: 'widgets',
+    requireAuth: false
+}
+</settings>

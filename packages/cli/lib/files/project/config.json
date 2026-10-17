@@ -1,0 +1,38 @@
+{
+    "version": "2.0.0",
+    "server": {
+        "host": "127.0.0.1",
+        "port": "3000",
+        "ssl": {
+            "enabled": false,
+            "key": "/key.pem",
+            "cert": "/certificate.cer"
+        }
+    },
+    "apis": [
+        {
+            "baseURL": "https://www.beaapis.com/1",
+            "headers": {
+                "X-BEA-Application-ID": "YOUR_APPLICATION_ID",
+                "X-BEA-Authorization": "YOUR_REST_API_KEY"
+            }
+        }
+    ],
+    "ftp": {
+        "host": "ftp_host",
+        "username": "ftp_username",
+        "password": "ftp_password",
+        "remotePath": "/",
+        "concurrency": 4,
+        "protocol": "ftp",
+        "port": 21,
+        "ignore": [],
+        "syncOption": {
+            "delete": false,
+            "ignoreExisting": false,
+            "skipCreate": false,
+            "update": true
+        },
+        "connectTimeout": 30000
+    }
+}

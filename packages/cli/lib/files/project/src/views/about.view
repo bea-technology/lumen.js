@@ -1,0 +1,24 @@
+<div style="max-width:640px;margin:0 auto;padding:80px 24px 40px;">
+    <h1 class="cw" style="font-size:32px;margin:0 0 16px;">About this project</h1>
+    <p class="fs15" style="opacity:.75;line-height:1.6;">
+        This project was scaffolded with <code>lm create</code>. The navigation bar and
+        footer you're looking at right now are LumenJS <strong>widgets</strong> — real
+        files under <code>src/views/widgets/</code>, wired into
+        <code>src/layouts/default.layout</code>. Unlike this page's own content, they
+        don't re-render when you navigate between pages.
+    </p>
+    <p class="fs15" style="opacity:.75;line-height:1.6;">
+        Add more pages under <code>src/views/</code>, more widgets under
+        <code>src/views/widgets/</code>, and point any layout element at one by giving it
+        a bare attribute matching the widget's name — LumenJS mounts and keeps it
+        persistent automatically.
+    </p>
+    <a href="/" class="cw fs14" style="opacity:.85;">Back home</a>
+</div>
+
+<settings>
+{
+    layout: 'default',
+    requireAuth: false
+}
+</settings>

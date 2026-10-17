@@ -1,0 +1,24 @@
+<!--
+Source .view that plugin-autoinit.hst.json was generated from, via fcs.js's
+real parser (getAllFiles) — kept here so the fixture is reproducible and
+reviewable, not just an opaque JSON blob. Regenerate with:
+
+  node -e "
+    const fcs = require('../../../cli/lib/fcs.js');
+    const fs = require('fs');
+    process.chdir(__dirname + '/test/fixtures');
+    const files = fcs.getAllFiles(process.cwd() + '/', {}, false, true);
+    const parsed = files[Object.keys(files).find(k => Buffer.from(k,'base64').toString().endsWith('plugin-autoinit.view'))];
+    fs.writeFileSync('plugin-autoinit.hst.json', JSON.stringify(parsed.hst, null, 1));
+  "
+
+(getAllFiles expects a directory of .view files, not a single file path —
+point it at this fixtures/ directory specifically, not the whole test/ tree.)
+-->
+<div id="e2e-plain" @after-render="onPlainAfterRender">plain element</div>
+<select id="e2e-sl" sl>
+    <option value="a">Alpha</option>
+    <option value="b">Beta</option>
+</select>
+<input id="e2e-color" color value="#ff0000">
+<input id="e2e-date" date>

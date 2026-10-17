@@ -1,0 +1,84 @@
+{
+  "name": "@lmjs/cli",
+  "version": "2.5.9",
+  "description": "Command line interface for LumenJS — scaffold, develop, and build LumenJS applications. LumenJS is a tiny, fast reactive JavaScript framework for building web applications and interfaces with standard HTML, CSS, and JavaScript.",
+  "bin": {
+    "lm": "./dist/bin/commands.js",
+    "lu": "./dist/bin/commands.js",
+    "lumen": "./dist/bin/commands.js"
+  },
+  "files": [
+    "dist/"
+  ],
+  "keywords": [
+    "lu",
+    "lm",
+    "lumen",
+    "lumenjs",
+    "lmjs",
+    "lumen-js",
+    "uselumen",
+    "devkit",
+    "devtools",
+    "sdk",
+    "reactive",
+    "framework",
+    "js",
+    "javascript",
+    "tiny",
+    "lumen-cli",
+    "lumenjs.com",
+    "lumin",
+    "beajs",
+    "lumen bea"
+  ],
+  "dependencies": {
+    "@lmjs/core": "workspace:*",
+    "acorn": "^8.18.0",
+    "acorn-loose": "^8.5.2",
+    "astring": "^1.9.0",
+    "chokidar": "^3.6.0",
+    "compression": "^1.7.4",
+    "cookie-parser": "^1.4.6",
+    "esbuild": "~0.28.0",
+    "express": "^4.18.1",
+    "express-session": "^1.17.3",
+    "ftp-deploy": "^2.4.3",
+    "he": "^1.2.0",
+    "html-minifier": "^4.0.0",
+    "less": "^4.9.1",
+    "multer": "^2.0.2",
+    "node-fetch": "^2.6.9",
+    "nodemon": "^2.0.16",
+    "ora": "^6.1.2",
+    "semver": "^7.3.7",
+    "ws": "^8.8.1"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "scripts": {
+    "requirements-check": "node -e \"var fs=require('fs'),p=fs.existsSync('./dist/lib/check-version.js')?'./dist/lib/check-version.js':'./lib/check-version.js';require(p);\"",
+    "postinstall": "npm run requirements-check",
+    "build": "node build/build.js",
+    "prepublishOnly": "npm run build",
+    "test": "node test/run.js"
+  },
+  "author": {
+    "name": "BEA Technology Company",
+    "email": "info@lumenjs.com"
+  },
+  "homepage": "https://www.lumenjs.com/",
+  "publishConfig": {
+    "access": "public"
+  },
+  "bugs": {
+    "url": "https://github.com/bea-technology/lumenjs/issues"
+  },
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/bea-technology/lumenjs.git",
+    "directory": "packages/cli"
+  }
+}

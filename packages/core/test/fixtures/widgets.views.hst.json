@@ -1,0 +1,377 @@
+{
+  "c3JjL3ZpZXdzL2hvbWUudmlldw==": {
+    "hst": [
+      {
+        "type": "tag",
+        "name": "div",
+        "isV": false,
+        "attrs": {
+          "id": "e2e-home"
+        },
+        "ax": {},
+        "evs": {},
+        "ex": {},
+        "children": [
+          {
+            "type": "text",
+            "content": "Home page",
+            "mss": [],
+            "tag": "div"
+          }
+        ]
+      },
+      {
+        "type": "tag",
+        "name": "settings",
+        "isV": false,
+        "attrs": {},
+        "ax": {},
+        "evs": {},
+        "ex": {},
+        "children": [
+          {
+            "type": "text",
+            "content": "\n{\n    layout: 'widgets',\n    requireAuth: false\n}\n",
+            "mss": [],
+            "tag": "settings"
+          }
+        ]
+      }
+    ],
+    "reactiveVars": []
+  },
+  "c3JjL3ZpZXdzL3BhZ2UyLnZpZXc=": {
+    "hst": [
+      {
+        "type": "tag",
+        "name": "div",
+        "isV": false,
+        "attrs": {
+          "id": "e2e-page2"
+        },
+        "ax": {},
+        "evs": {},
+        "ex": {},
+        "children": [
+          {
+            "type": "text",
+            "content": "Page 2 — nav count seen here: ",
+            "mss": [],
+            "tag": "div"
+          },
+          {
+            "type": "tag",
+            "name": "span",
+            "isV": false,
+            "attrs": {
+              "id": "e2e-page2-count"
+            },
+            "ax": {},
+            "evs": {},
+            "ex": {},
+            "children": [
+              {
+                "type": "text",
+                "content": "{{count}}",
+                "mss": [
+                  {
+                    "mus": "count",
+                    "jst": {
+                      "type": "Program",
+                      "start": 0,
+                      "end": 5,
+                      "body": [
+                        {
+                          "type": "ExpressionStatement",
+                          "start": 0,
+                          "end": 5,
+                          "expression": {
+                            "type": "Identifier",
+                            "start": 0,
+                            "end": 5,
+                            "name": "count"
+                          }
+                        }
+                      ],
+                      "sourceType": "script"
+                    },
+                    "rvs": [
+                      "count"
+                    ],
+                    "start": 0,
+                    "end": 9
+                  }
+                ],
+                "tag": "span"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "tag",
+        "name": "settings",
+        "isV": false,
+        "attrs": {},
+        "ax": {},
+        "evs": {},
+        "ex": {},
+        "children": [
+          {
+            "type": "text",
+            "content": "\n{\n    layout: 'widgets',\n    requireAuth: false\n}\n",
+            "mss": [],
+            "tag": "settings"
+          }
+        ]
+      }
+    ],
+    "reactiveVars": [
+      "count"
+    ]
+  },
+  "c3JjL3ZpZXdzL3BhZ2UzLnZpZXc=": {
+    "hst": [
+      {
+        "type": "tag",
+        "name": "div",
+        "isV": false,
+        "attrs": {
+          "id": "e2e-page3"
+        },
+        "ax": {},
+        "evs": {},
+        "ex": {},
+        "children": [
+          {
+            "type": "text",
+            "content": "Page 3 (nav disabled)",
+            "mss": [],
+            "tag": "div"
+          }
+        ]
+      },
+      {
+        "type": "tag",
+        "name": "settings",
+        "isV": false,
+        "attrs": {},
+        "ax": {},
+        "evs": {},
+        "ex": {},
+        "children": [
+          {
+            "type": "text",
+            "content": "\n{\n    layout: 'widgets',\n    requireAuth: false,\n    hasNav: false\n}\n",
+            "mss": [],
+            "tag": "settings"
+          }
+        ]
+      }
+    ],
+    "reactiveVars": []
+  },
+  "c3JjL3ZpZXdzL3dpZGdldHMvbmF2LnZpZXc=": {
+    "hst": [
+      {
+        "type": "tag",
+        "name": "div",
+        "isV": false,
+        "attrs": {
+          "id": "e2e-nav",
+          "class": "nav-widget"
+        },
+        "ax": {},
+        "evs": {},
+        "ex": {},
+        "children": [
+          {
+            "type": "text",
+            "content": "\n    ",
+            "mss": [],
+            "tag": "div"
+          },
+          {
+            "type": "tag",
+            "name": "span",
+            "isV": false,
+            "attrs": {
+              "id": "e2e-nav-count"
+            },
+            "ax": {},
+            "evs": {},
+            "ex": {},
+            "children": [
+              {
+                "type": "text",
+                "content": "{{count}}",
+                "mss": [
+                  {
+                    "mus": "count",
+                    "jst": {
+                      "type": "Program",
+                      "start": 0,
+                      "end": 5,
+                      "body": [
+                        {
+                          "type": "ExpressionStatement",
+                          "start": 0,
+                          "end": 5,
+                          "expression": {
+                            "type": "Identifier",
+                            "start": 0,
+                            "end": 5,
+                            "name": "count"
+                          }
+                        }
+                      ],
+                      "sourceType": "script"
+                    },
+                    "rvs": [
+                      "count"
+                    ],
+                    "start": 0,
+                    "end": 9
+                  }
+                ],
+                "tag": "span"
+              }
+            ]
+          },
+          {
+            "type": "tag",
+            "name": "button",
+            "isV": false,
+            "attrs": {
+              "id": "e2e-nav-bump"
+            },
+            "ax": {},
+            "evs": {
+              "@click": "bump"
+            },
+            "ex": {},
+            "children": [
+              {
+                "type": "text",
+                "content": "Bump",
+                "mss": [],
+                "tag": "button"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "tag",
+        "name": "script",
+        "isV": false,
+        "attrs": {},
+        "ax": {},
+        "evs": {},
+        "ex": {},
+        "children": [
+          {
+            "type": "text",
+            "content": "",
+            "jst": {
+              "type": "Program",
+              "start": 0,
+              "end": 59,
+              "body": [
+                {
+                  "type": "VariableDeclaration",
+                  "start": 1,
+                  "end": 15,
+                  "kind": "var",
+                  "declarations": [
+                    {
+                      "type": "VariableDeclarator",
+                      "start": 5,
+                      "end": 14,
+                      "id": {
+                        "type": "Identifier",
+                        "start": 5,
+                        "end": 10,
+                        "name": "count"
+                      },
+                      "init": {
+                        "type": "Literal",
+                        "start": 13,
+                        "end": 14,
+                        "value": 0,
+                        "raw": "0"
+                      }
+                    }
+                  ]
+                },
+                {
+                  "type": "FunctionDeclaration",
+                  "start": 16,
+                  "end": 58,
+                  "id": {
+                    "type": "Identifier",
+                    "start": 25,
+                    "end": 29,
+                    "name": "bump"
+                  },
+                  "params": [],
+                  "generator": false,
+                  "expression": false,
+                  "async": false,
+                  "body": {
+                    "type": "BlockStatement",
+                    "start": 32,
+                    "end": 58,
+                    "body": [
+                      {
+                        "type": "ExpressionStatement",
+                        "start": 38,
+                        "end": 56,
+                        "expression": {
+                          "type": "AssignmentExpression",
+                          "start": 38,
+                          "end": 55,
+                          "operator": "=",
+                          "left": {
+                            "type": "Identifier",
+                            "start": 38,
+                            "end": 43,
+                            "name": "count"
+                          },
+                          "right": {
+                            "type": "BinaryExpression",
+                            "start": 46,
+                            "end": 55,
+                            "left": {
+                              "type": "Identifier",
+                              "start": 46,
+                              "end": 51,
+                              "name": "count"
+                            },
+                            "operator": "+",
+                            "right": {
+                              "type": "Literal",
+                              "start": 54,
+                              "end": 55,
+                              "value": 1,
+                              "raw": "1"
+                            }
+                          }
+                        }
+                      }
+                    ]
+                  }
+                }
+              ],
+              "sourceType": "script"
+            },
+            "tag": "script"
+          }
+        ]
+      }
+    ],
+    "reactiveVars": [
+      "count"
+    ]
+  }
+}

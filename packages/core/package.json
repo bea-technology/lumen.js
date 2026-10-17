@@ -1,0 +1,80 @@
+{
+  "name": "@lmjs/core",
+  "version": "2.5.9",
+  "description": "LumenJS reactive core runtime — the reactive engine, HTML/JS AST compiler, realtime socket client, and delegated event listeners powering LumenJS applications.",
+  "files": [
+    "dist/",
+    "src/",
+    "build/",
+    "vendor/"
+  ],
+  "main": "dist/lumenjs-core.js",
+  "scripts": {
+    "build": "node build/bundle.js",
+    "prepublishOnly": "npm run build",
+    "pretest": "npm run build",
+    "test": "node test/run.js"
+  },
+  "dependencies": {
+    "@iconify/iconify": "^3.1.1",
+    "astring": "^1.9.0",
+    "bootstrap-colorpicker": "^2.5.3",
+    "bootstrap-datetimepicker": "^0.0.7",
+    "flickity": "^3.0.0",
+    "gsap": "^3.15.0",
+    "headroom.js": "^0.12.0",
+    "in-view": "^0.6.1",
+    "jquery": "^3.7.1",
+    "jquery-bridget": "^3.0.1",
+    "jquery-form": "^4.3.0",
+    "jquery-lazy": "^1.7.11",
+    "jquery-tageditor": "^1.0.1",
+    "jquery-ui-dist": "1.12.1",
+    "jquery.caret": "^0.3.1",
+    "jquery.easing": "^1.4.1",
+    "jquery.numeric": "^1.0.0",
+    "nestedSortable": "^1.3.4",
+    "rellax": "^1.12.1",
+    "select2": "^4.1.0",
+    "slick-carousel": "^2.0.0",
+    "timeago": "^1.6.7"
+  },
+  "devDependencies": {
+    "esbuild": "~0.28.0",
+    "jsdom": "^25.0.0",
+    "less": "^4.9.1"
+  },
+  "keywords": [
+    "lu",
+    "lm",
+    "lumen",
+    "lumenjs",
+    "lmjs",
+    "lumen-js",
+    "uselumen",
+    "reactive",
+    "framework",
+    "js",
+    "javascript",
+    "tiny",
+    "lumenjs.com",
+    "beajs"
+  ],
+  "author": {
+    "name": "BEA Technology Company",
+    "email": "info@lumenjs.com"
+  },
+  "homepage": "https://www.lumenjs.com/",
+  "publishConfig": {
+    "access": "public"
+  },
+  "bugs": {
+    "url": "https://github.com/bea-technology/lumenjs/issues"
+  },
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/bea-technology/lumenjs.git",
+    "directory": "packages/core"
+  }
+}

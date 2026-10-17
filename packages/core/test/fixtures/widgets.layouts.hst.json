@@ -1,0 +1,60 @@
+{
+  "c3JjL2xheW91dHMvd2lkZ2V0cy5sYXlvdXQ=": {
+    "hst": [
+      {
+        "type": "tag",
+        "name": "header",
+        "isV": false,
+        "attrs": {
+          "header": ""
+        },
+        "ax": {},
+        "evs": {},
+        "ex": {},
+        "children": []
+      },
+      {
+        "type": "tag",
+        "name": "nav",
+        "isV": false,
+        "attrs": {
+          "nav": ""
+        },
+        "ax": {},
+        "evs": {},
+        "ex": {},
+        "children": []
+      },
+      {
+        "type": "tag",
+        "name": "main",
+        "isV": false,
+        "attrs": {
+          "body": ""
+        },
+        "ax": {},
+        "evs": {},
+        "ex": {},
+        "children": []
+      },
+      {
+        "type": "tag",
+        "name": "footer",
+        "isV": false,
+        "attrs": {
+          "footer": ""
+        },
+        "ax": {},
+        "evs": {},
+        "ex": {},
+        "children": []
+      }
+    ],
+    "reactiveVars": [],
+    "regions": [
+      "header",
+      "nav",
+      "footer"
+    ]
+  }
+}

@@ -1,0 +1,11 @@
+{
+  "name": "lumenjs-monorepo",
+  "private": true,
+  "description": "LumenJS: a tiny reactive JavaScript framework. Write .view files in plain HTML, CSS and JavaScript.",
+  "license": "MIT",
+  "packageManager": "pnpm@9.0.0",
+  "scripts": {
+    "build": "pnpm -r --if-present build",
+    "test": "pnpm -r --if-present test"
+  }
+}

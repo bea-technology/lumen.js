@@ -1,0 +1,113 @@
+[
+ {
+  "type": "text",
+  "content": "\n",
+  "mss": []
+ },
+ {
+  "type": "tag",
+  "name": "div",
+  "isV": false,
+  "attrs": {
+   "id": "e2e-plain"
+  },
+  "ax": {},
+  "evs": {
+   "@after-render": "onPlainAfterRender"
+  },
+  "ex": {},
+  "children": [
+   {
+    "type": "text",
+    "content": "plain element",
+    "mss": [],
+    "tag": "div"
+   }
+  ]
+ },
+ {
+  "type": "tag",
+  "name": "select",
+  "isV": false,
+  "attrs": {
+   "id": "e2e-sl",
+   "sl": ""
+  },
+  "ax": {},
+  "evs": {},
+  "ex": {},
+  "children": [
+   {
+    "type": "text",
+    "content": "\n    ",
+    "mss": [],
+    "tag": "select"
+   },
+   {
+    "type": "tag",
+    "name": "option",
+    "isV": false,
+    "attrs": {
+     "value": "a"
+    },
+    "ax": {},
+    "evs": {},
+    "ex": {},
+    "children": [
+     {
+      "type": "text",
+      "content": "Alpha",
+      "mss": [],
+      "tag": "option"
+     }
+    ]
+   },
+   {
+    "type": "tag",
+    "name": "option",
+    "isV": false,
+    "attrs": {
+     "value": "b"
+    },
+    "ax": {},
+    "evs": {},
+    "ex": {},
+    "children": [
+     {
+      "type": "text",
+      "content": "Beta",
+      "mss": [],
+      "tag": "option"
+     }
+    ]
+   }
+  ]
+ },
+ {
+  "type": "tag",
+  "name": "input",
+  "isV": true,
+  "attrs": {
+   "id": "e2e-color",
+   "color": "",
+   "value": "#ff0000"
+  },
+  "ax": {},
+  "evs": {},
+  "ex": {},
+  "children": []
+ },
+ {
+  "type": "tag",
+  "name": "input",
+  "isV": true,
+  "attrs": {
+   "id": "e2e-date",
+   "date": ""
+  },
+  "ax": {},
+  "evs": {},
+  "ex": {},
+  "children": []
+ }
+]

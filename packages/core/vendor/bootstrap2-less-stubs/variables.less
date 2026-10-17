@@ -1,0 +1,13 @@
+// Minimal stub (2026-09-14) — bootstrap-datetimepicker's own LESS source
+// (Stefan Petre, 2012, Bootstrap 2 era) `@import`s a real Bootstrap 2
+// `variables.less`, which this old npm package doesn't ship at all (it
+// assumes it's being compiled alongside a full Bootstrap 2 LESS tree).
+// Pulling in all of Bootstrap 2 just for these 5 variables isn't worth it —
+// this stub provides exactly the ones bootstrap-datetimepicker.less
+// actually references (checked via grep), using Bootstrap 2's real default
+// values so the widget renders the way it originally did.
+@baseFontSize: 14px;
+@white: #ffffff;
+@grayLight: #999999;
+@grayLighter: #eeeeee;
+@btnPrimaryBackground: #0074cc;

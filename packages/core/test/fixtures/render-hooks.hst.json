@@ -1,0 +1,146 @@
+[
+ {
+  "type": "tag",
+  "name": "div",
+  "isV": false,
+  "attrs": {
+   "class": "carousel",
+   "id": "e2e-carousel"
+  },
+  "ax": {},
+  "evs": {},
+  "ex": {},
+  "children": [
+   {
+    "type": "text",
+    "content": "\n    ",
+    "mss": [],
+    "tag": "div"
+   },
+   {
+    "type": "sections",
+    "name": "div",
+    "isV": false,
+    "attrs": {
+     "class": "cell",
+     ":for": "images"
+    },
+    "ax": {},
+    "evs": {
+     "@before-render": "onBeforeRender",
+     "@after-render": "onAfterRender"
+    },
+    "ex": {},
+    "children": [
+     {
+      "type": "text",
+      "content": "{{image}}",
+      "mss": [
+       {
+        "mus": "image",
+        "jst": {
+         "type": "Program",
+         "start": 0,
+         "end": 5,
+         "body": [
+          {
+           "type": "ExpressionStatement",
+           "start": 0,
+           "end": 5,
+           "expression": {
+            "type": "Identifier",
+            "start": 0,
+            "end": 5,
+            "name": "image"
+           }
+          }
+         ],
+         "sourceType": "script"
+        },
+        "rvs": [
+         "image"
+        ],
+        "start": 0,
+        "end": 9
+       }
+      ],
+      "tag": "div"
+     }
+    ],
+    "content": "images",
+    "forX": {
+     "js": "images",
+     "as": {
+      "k": "",
+      "v": ""
+     },
+     "dx": ""
+    }
+   }
+  ]
+ },
+ {
+  "type": "tag",
+  "name": "div",
+  "isV": false,
+  "attrs": {
+   "id": "e2e-if-wrap"
+  },
+  "ax": {},
+  "evs": {},
+  "ex": {},
+  "children": [
+   {
+    "type": "text",
+    "content": "\n    ",
+    "mss": [],
+    "tag": "div"
+   },
+   {
+    "type": "section",
+    "name": "div",
+    "isV": false,
+    "attrs": {
+     ":if": "isAdmin"
+    },
+    "ax": {},
+    "evs": {
+     "@before-render": "onIfBeforeRender",
+     "@after-render": "onIfAfterRender"
+    },
+    "ex": {},
+    "children": [
+     {
+      "type": "text",
+      "content": "Admin",
+      "mss": [],
+      "tag": "div"
+     }
+    ],
+    "cond": "isAdmin"
+   },
+   {
+    "type": "section",
+    "name": "div",
+    "isV": false,
+    "attrs": {
+     ":else": ""
+    },
+    "ax": {},
+    "evs": {
+     "@after-render": "onElseAfterRender"
+    },
+    "ex": {},
+    "children": [
+     {
+      "type": "text",
+      "content": "Guest",
+      "mss": [],
+      "tag": "div"
+     }
+    ],
+    "cond": ""
+   }
+  ]
+ }
+]

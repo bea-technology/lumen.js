@@ -1,0 +1,11 @@
+<div id="e2e-nav" class="nav-widget">
+    <span id="e2e-nav-count">{{count}}</span>
+    <button id="e2e-nav-bump" @click="bump">Bump</button>
+</div>
+
+<script>
+var count = 0;
+function bump() {
+    count = count + 1;
+}
+</script>

@@ -1,0 +1,16 @@
+// Minimal stub (2026-09-14) — see variables.less in this same folder for
+// why this exists. Only the two mixins bootstrap-datetimepicker.less
+// actually calls (checked via grep): .border-radius() and
+// .buttonBackground(), reimplemented with plain modern CSS equivalents to
+// Bootstrap 2's originals rather than vendoring the whole mixin library.
+.border-radius(@radius: 5px) {
+  border-radius: @radius;
+}
+
+.buttonBackground(@startColor: #ffffff, @endColor: #eeeeee) {
+  background-color: @endColor;
+  background-image: linear-gradient(to bottom, @startColor, @endColor);
+  &:hover, &:active, &.active {
+    background-color: darken(@endColor, 5%);
+  }
+}

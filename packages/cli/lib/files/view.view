@@ -1,0 +1,13 @@
+<div>
+    [ViewName] View
+</div>
+<script>
+    
+</script>
+
+<settings>
+    {
+        layout: 'default',
+        requireAuth: false
+    }
+</settings>

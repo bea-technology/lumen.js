@@ -1,0 +1,8 @@
+<div>
+    [SubViewName] Sub View
+</div>
+<script>
+    view.scope(function (view, props) {
+
+    });
+</script>

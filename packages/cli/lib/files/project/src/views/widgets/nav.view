@@ -1,0 +1,9 @@
+<div style="display:flex;align-items:center;justify-content:space-between;padding:14px 30px;background:#1f1f1f;box-shadow:0 1px 0 rgba(255,255,255,.06);">
+    <a href="/" style="display:flex;align-items:center;gap:8px;text-decoration:none;">
+        <strong class="cw fs18">LumenJS</strong>
+    </a>
+    <div style="display:flex;align-items:center;gap:24px;">
+        <a href="/" class="cw fs14" style="text-decoration:none;opacity:.85;">Home</a>
+        <a href="/about" class="cw fs14" style="text-decoration:none;opacity:.85;">About</a>
+    </div>
+</div>

@@ -1,0 +1,479 @@
+[
+  {
+    "type": "tag",
+    "name": "div",
+    "isV": false,
+    "attrs": {},
+    "ax": {},
+    "evs": {},
+    "ex": {},
+    "children": [
+      {
+        "type": "text",
+        "content": "\n    ",
+        "mss": [],
+        "tag": "div"
+      },
+      {
+        "type": "tag",
+        "name": "ul",
+        "isV": false,
+        "attrs": {
+          "id": "bare"
+        },
+        "ax": {},
+        "evs": {},
+        "ex": {},
+        "children": [
+          {
+            "type": "sections",
+            "name": "li",
+            "isV": false,
+            "attrs": {
+              ":for": "items"
+            },
+            "ax": {},
+            "evs": {},
+            "ex": {},
+            "children": [
+              {
+                "type": "text",
+                "content": "The number is: {{number}}",
+                "mss": [
+                  {
+                    "mus": "number",
+                    "jst": {
+                      "type": "Program",
+                      "start": 0,
+                      "end": 6,
+                      "body": [
+                        {
+                          "type": "ExpressionStatement",
+                          "start": 0,
+                          "end": 6,
+                          "expression": {
+                            "type": "Identifier",
+                            "start": 0,
+                            "end": 6,
+                            "name": "number"
+                          }
+                        }
+                      ],
+                      "sourceType": "script"
+                    },
+                    "rvs": [
+                      "number"
+                    ],
+                    "start": 15,
+                    "end": 25
+                  }
+                ],
+                "tag": "li"
+              }
+            ],
+            "content": "items",
+            "forX": {
+              "js": "items",
+              "as": {
+                "k": "",
+                "v": ""
+              },
+              "dx": ""
+            }
+          }
+        ]
+      },
+      {
+        "type": "tag",
+        "name": "ul",
+        "isV": false,
+        "attrs": {
+          "id": "filtered"
+        },
+        "ax": {},
+        "evs": {},
+        "ex": {},
+        "children": [
+          {
+            "type": "sections",
+            "name": "li",
+            "isV": false,
+            "attrs": {
+              ":for": "items2 as item",
+              ":for-if": "item.value > 10"
+            },
+            "ax": {},
+            "evs": {},
+            "ex": {},
+            "children": [
+              {
+                "type": "text",
+                "content": "{{item.key}}: {{item.value}}",
+                "mss": [
+                  {
+                    "mus": "item.key",
+                    "jst": {
+                      "type": "Program",
+                      "start": 0,
+                      "end": 8,
+                      "body": [
+                        {
+                          "type": "ExpressionStatement",
+                          "start": 0,
+                          "end": 8,
+                          "expression": {
+                            "type": "MemberExpression",
+                            "start": 0,
+                            "end": 8,
+                            "object": {
+                              "type": "Identifier",
+                              "start": 0,
+                              "end": 4,
+                              "name": "item"
+                            },
+                            "property": {
+                              "type": "Identifier",
+                              "start": 5,
+                              "end": 8,
+                              "name": "key"
+                            },
+                            "computed": false,
+                            "optional": false
+                          }
+                        }
+                      ],
+                      "sourceType": "script"
+                    },
+                    "rvs": [
+                      "item"
+                    ],
+                    "start": 0,
+                    "end": 12
+                  },
+                  {
+                    "mus": "item.value",
+                    "jst": {
+                      "type": "Program",
+                      "start": 0,
+                      "end": 10,
+                      "body": [
+                        {
+                          "type": "ExpressionStatement",
+                          "start": 0,
+                          "end": 10,
+                          "expression": {
+                            "type": "MemberExpression",
+                            "start": 0,
+                            "end": 10,
+                            "object": {
+                              "type": "Identifier",
+                              "start": 0,
+                              "end": 4,
+                              "name": "item"
+                            },
+                            "property": {
+                              "type": "Identifier",
+                              "start": 5,
+                              "end": 10,
+                              "name": "value"
+                            },
+                            "computed": false,
+                            "optional": false
+                          }
+                        }
+                      ],
+                      "sourceType": "script"
+                    },
+                    "rvs": [
+                      "item"
+                    ],
+                    "start": 14,
+                    "end": 28
+                  }
+                ],
+                "tag": "li"
+              }
+            ],
+            "content": "items2 as item",
+            "forX": {
+              "js": "items2",
+              "as": {
+                "k": "item",
+                "v": ""
+              },
+              "dx": ""
+            }
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "type": "tag",
+    "name": "script",
+    "isV": false,
+    "attrs": {},
+    "ax": {},
+    "evs": {},
+    "ex": {},
+    "children": [
+      {
+        "type": "text",
+        "content": "",
+        "jst": {
+          "type": "Program",
+          "start": 0,
+          "end": 116,
+          "body": [
+            {
+              "type": "VariableDeclaration",
+              "start": 5,
+              "end": 58,
+              "kind": "var",
+              "declarations": [
+                {
+                  "type": "VariableDeclarator",
+                  "start": 9,
+                  "end": 57,
+                  "id": {
+                    "type": "Identifier",
+                    "start": 9,
+                    "end": 14,
+                    "name": "items"
+                  },
+                  "init": {
+                    "type": "ArrayExpression",
+                    "start": 17,
+                    "end": 57,
+                    "elements": [
+                      {
+                        "type": "ObjectExpression",
+                        "start": 18,
+                        "end": 30,
+                        "properties": [
+                          {
+                            "type": "Property",
+                            "start": 19,
+                            "end": 29,
+                            "method": false,
+                            "shorthand": false,
+                            "computed": false,
+                            "key": {
+                              "type": "Literal",
+                              "start": 19,
+                              "end": 27,
+                              "value": "number",
+                              "raw": "\"number\""
+                            },
+                            "kind": "init",
+                            "value": {
+                              "type": "Literal",
+                              "start": 28,
+                              "end": 29,
+                              "value": 1,
+                              "raw": "1"
+                            }
+                          }
+                        ]
+                      },
+                      {
+                        "type": "ObjectExpression",
+                        "start": 31,
+                        "end": 43,
+                        "properties": [
+                          {
+                            "type": "Property",
+                            "start": 32,
+                            "end": 42,
+                            "method": false,
+                            "shorthand": false,
+                            "computed": false,
+                            "key": {
+                              "type": "Literal",
+                              "start": 32,
+                              "end": 40,
+                              "value": "number",
+                              "raw": "\"number\""
+                            },
+                            "kind": "init",
+                            "value": {
+                              "type": "Literal",
+                              "start": 41,
+                              "end": 42,
+                              "value": 2,
+                              "raw": "2"
+                            }
+                          }
+                        ]
+                      },
+                      {
+                        "type": "ObjectExpression",
+                        "start": 44,
+                        "end": 56,
+                        "properties": [
+                          {
+                            "type": "Property",
+                            "start": 45,
+                            "end": 55,
+                            "method": false,
+                            "shorthand": false,
+                            "computed": false,
+                            "key": {
+                              "type": "Literal",
+                              "start": 45,
+                              "end": 53,
+                              "value": "number",
+                              "raw": "\"number\""
+                            },
+                            "kind": "init",
+                            "value": {
+                              "type": "Literal",
+                              "start": 54,
+                              "end": 55,
+                              "value": 3,
+                              "raw": "3"
+                            }
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "type": "VariableDeclaration",
+              "start": 63,
+              "end": 115,
+              "kind": "var",
+              "declarations": [
+                {
+                  "type": "VariableDeclarator",
+                  "start": 67,
+                  "end": 114,
+                  "id": {
+                    "type": "Identifier",
+                    "start": 67,
+                    "end": 73,
+                    "name": "items2"
+                  },
+                  "init": {
+                    "type": "ArrayExpression",
+                    "start": 76,
+                    "end": 114,
+                    "elements": [
+                      {
+                        "type": "ObjectExpression",
+                        "start": 77,
+                        "end": 94,
+                        "properties": [
+                          {
+                            "type": "Property",
+                            "start": 78,
+                            "end": 85,
+                            "method": false,
+                            "shorthand": false,
+                            "computed": false,
+                            "key": {
+                              "type": "Identifier",
+                              "start": 78,
+                              "end": 81,
+                              "name": "key"
+                            },
+                            "kind": "init",
+                            "value": {
+                              "type": "Literal",
+                              "start": 82,
+                              "end": 85,
+                              "value": "a",
+                              "raw": "\"a\""
+                            }
+                          },
+                          {
+                            "type": "Property",
+                            "start": 86,
+                            "end": 93,
+                            "method": false,
+                            "shorthand": false,
+                            "computed": false,
+                            "key": {
+                              "type": "Identifier",
+                              "start": 86,
+                              "end": 91,
+                              "name": "value"
+                            },
+                            "kind": "init",
+                            "value": {
+                              "type": "Literal",
+                              "start": 92,
+                              "end": 93,
+                              "value": 5,
+                              "raw": "5"
+                            }
+                          }
+                        ]
+                      },
+                      {
+                        "type": "ObjectExpression",
+                        "start": 95,
+                        "end": 113,
+                        "properties": [
+                          {
+                            "type": "Property",
+                            "start": 96,
+                            "end": 103,
+                            "method": false,
+                            "shorthand": false,
+                            "computed": false,
+                            "key": {
+                              "type": "Identifier",
+                              "start": 96,
+                              "end": 99,
+                              "name": "key"
+                            },
+                            "kind": "init",
+                            "value": {
+                              "type": "Literal",
+                              "start": 100,
+                              "end": 103,
+                              "value": "b",
+                              "raw": "\"b\""
+                            }
+                          },
+                          {
+                            "type": "Property",
+                            "start": 104,
+                            "end": 112,
+                            "method": false,
+                            "shorthand": false,
+                            "computed": false,
+                            "key": {
+                              "type": "Identifier",
+                              "start": 104,
+                              "end": 109,
+                              "name": "value"
+                            },
+                            "kind": "init",
+                            "value": {
+                              "type": "Literal",
+                              "start": 110,
+                              "end": 112,
+                              "value": 20,
+                              "raw": "20"
+                            }
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                }
+              ]
+            }
+          ],
+          "sourceType": "script"
+        },
+        "tag": "script"
+      }
+    ]
+  }
+]

@@ -1,0 +1,4 @@
+<div id="e2e-main">Main: {{title}}</div>
+<slot name="sidebar">
+    <div id="e2e-sidebar-content">Sidebar: {{title}}</div>
+</slot>

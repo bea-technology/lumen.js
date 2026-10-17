@@ -1,0 +1,9 @@
+<div id="e2e-page3">Page 3 (nav disabled)</div>
+
+<settings>
+{
+    layout: 'widgets',
+    requireAuth: false,
+    hasNav: false
+}
+</settings>

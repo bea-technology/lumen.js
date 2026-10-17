@@ -1,0 +1,32 @@
+<div style="max-width:720px;margin:0 auto;padding:80px 24px 40px;text-align:center;">
+    <img src="/images/lumenjs.svg" alt="LumenJS" style="width:96px;height:96px;margin-bottom:24px;" />
+    <h1 class="cw" style="font-size:40px;margin:0 0 12px;">Welcome to LumenJS</h1>
+    <p class="fs16" style="opacity:.75;margin:0 0 32px;">
+        A tiny, fast reactive framework for building web apps with plain HTML, CSS and JavaScript.
+    </p>
+    <a href="https://www.lumenjs.com/guide/getting-started" class="cw fs15" style="display:inline-block;padding:12px 28px;background:#FFA302;color:#181818;border-radius:6px;text-decoration:none;font-weight:600;">
+        Read the Docs
+    </a>
+
+    <div style="display:flex;gap:20px;justify-content:center;margin-top:60px;flex-wrap:wrap;">
+        <div style="flex:1;min-width:180px;max-width:220px;padding:20px;background:#1f1f1f;border-radius:8px;text-align:left;">
+            <div class="cw fs15" style="font-weight:600;margin-bottom:6px;">Reactive by default</div>
+            <div class="fs13" style="opacity:.65;">Mustaches and directives update automatically when your data changes.</div>
+        </div>
+        <div style="flex:1;min-width:180px;max-width:220px;padding:20px;background:#1f1f1f;border-radius:8px;text-align:left;">
+            <div class="cw fs15" style="font-weight:600;margin-bottom:6px;">Widgets & layouts</div>
+            <div class="fs13" style="opacity:.65;">The nav and footer on this page persist across navigation — try the About link.</div>
+        </div>
+        <div style="flex:1;min-width:180px;max-width:220px;padding:20px;background:#1f1f1f;border-radius:8px;text-align:left;">
+            <div class="cw fs15" style="font-weight:600;margin-bottom:6px;">Just HTML & JS</div>
+            <div class="fs13" style="opacity:.65;">No build step to learn — write real HTML, CSS and JavaScript.</div>
+        </div>
+    </div>
+</div>
+
+<settings>
+{
+    layout: 'default',
+    requireAuth: false
+}
+</settings>

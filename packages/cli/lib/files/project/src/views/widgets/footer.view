@@ -1,0 +1,11 @@
+<div style="display:flex;align-items:center;justify-content:space-between;padding:20px 30px;background:#1a1a1a;margin-top:40px;flex-wrap:wrap;gap:10px;">
+    <span class="fs13" style="opacity:.6;">Built with LumenJS</span>
+    <div style="display:flex;align-items:center;gap:16px;">
+        <a href="https://www.npmjs.com/package/@lmjs/cli" style="opacity:.7;">
+            <span data-icon="mdi:npm" class="iconify cw fs20"></span>
+        </a>
+        <a href="https://github.com/bea-technology/lmjs-cli" style="opacity:.7;">
+            <span data-icon="mdi:github" class="iconify cw fs20"></span>
+        </a>
+    </div>
+</div>

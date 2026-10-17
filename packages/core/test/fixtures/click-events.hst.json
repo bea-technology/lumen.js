@@ -1,0 +1,94 @@
+[
+ {
+  "type": "text",
+  "content": "\n",
+  "mss": []
+ },
+ {
+  "type": "tag",
+  "name": "div",
+  "isV": false,
+  "attrs": {
+   "id": "e2e-click-wrap"
+  },
+  "ax": {},
+  "evs": {},
+  "ex": {},
+  "children": [
+   {
+    "type": "text",
+    "content": "\n    ",
+    "mss": [],
+    "tag": "div"
+   },
+   {
+    "type": "tag",
+    "name": "button",
+    "isV": false,
+    "attrs": {
+     "id": "e2e-btn"
+    },
+    "ax": {},
+    "evs": {
+     "@click": "bump"
+    },
+    "ex": {},
+    "children": [
+     {
+      "type": "text",
+      "content": "bump",
+      "mss": [],
+      "tag": "button"
+     }
+    ]
+   },
+   {
+    "type": "tag",
+    "name": "div",
+    "isV": false,
+    "attrs": {
+     "id": "e2e-count"
+    },
+    "ax": {},
+    "evs": {},
+    "ex": {},
+    "children": [
+     {
+      "type": "text",
+      "content": "count: {{count}}",
+      "mss": [
+       {
+        "mus": "count",
+        "jst": {
+         "type": "Program",
+         "start": 0,
+         "end": 5,
+         "body": [
+          {
+           "type": "ExpressionStatement",
+           "start": 0,
+           "end": 5,
+           "expression": {
+            "type": "Identifier",
+            "start": 0,
+            "end": 5,
+            "name": "count"
+           }
+          }
+         ],
+         "sourceType": "script"
+        },
+        "rvs": [
+         "count"
+        ],
+        "start": 7,
+        "end": 16
+       }
+      ],
+      "tag": "div"
+     }
+    ]
+   }
+  ]
+ }
+]
