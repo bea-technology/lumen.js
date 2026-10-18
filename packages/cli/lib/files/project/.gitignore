@@ -2,3 +2,4 @@ node_modules/
 dist/
 .roxyon-token.local
 .lumen-vault.local
+.lumen/

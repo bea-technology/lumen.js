@@ -1,6 +1,6 @@
 {
   "name": "@lmjs/core",
-  "version": "2.5.9",
+  "version": "2.6.0",
   "description": "LumenJS reactive core runtime — the reactive engine, HTML/JS AST compiler, realtime socket client, and delegated event listeners powering LumenJS applications.",
   "files": [
     "dist/",
@@ -69,7 +69,7 @@
     "access": "public"
   },
   "bugs": {
-    "url": "https://github.com/bea-technology/lumenjs/issues"
+    "url": "https://github.com/bea-technology/lumen.js/issues"
   },
   "license": "MIT",
   "repository": {

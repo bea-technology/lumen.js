@@ -17,10 +17,12 @@
 // with the PAT alone, no re-verification per call — see the plan's
 // "Context" section for why (an AI agent driving `lm api set` has no
 // inbox to check on every call).
+// 2026-10-18: `lm login` no longer shells out to `roxyon login`; it is its
+// own OAuth sign-in (lib/copilot/auth.js) and the token is read from
+// ~/.roxyon/config.json as well.
 const fs = require("fs");
 const path = require("path");
 const readline = require("readline");
-const { execSync, spawnSync } = require("child_process");
 const fetch = require("node-fetch");
 
 const LUMEN_SECRETS_BASE = "https://www.beaapis.com/1/_lumen_secrets";
@@ -35,10 +37,10 @@ function vaultFilePath(projectRoot) {
   return path.join(projectRoot, VAULT_FILE_NAME);
 }
 
-// Same convention the `roxyon` CLI already uses — env var first, then a
-// gitignored project-local file. Never a global/home-dir fallback, to
-// match that existing convention exactly (see roxyon-knowledge/_meta/
-// CREDENTIALS.md).
+// Env var first, then the gitignored project-local file (the `roxyon` CLI's PAT convention), then the sign-in stored
+// in ~/.roxyon/config.json by `lm login` (or a PAT `roxyon` stored there).
+// 2026-10-18 fix: this used to stop after the project file, and `lm login` shelled out to `roxyon login`, which only
+// ever writes ~/.roxyon/config.json, so `lm login` could never find the token it had just created.
 function getStoredToken(projectRoot) {
   if (process.env.ROXYON_TOKEN) return process.env.ROXYON_TOKEN.trim();
   const p = tokenFilePath(projectRoot);
@@ -46,53 +48,33 @@ function getStoredToken(projectRoot) {
     const t = fs.readFileSync(p, "utf8").trim();
     if (t) return t;
   }
-  return null;
+  return _auth().storedPat();
 }
 
-function hasRoxyonCli() {
-  try {
-    execSync(process.platform === "win32" ? "where roxyon" : "which roxyon", { stdio: "ignore" });
-    return true;
-  } catch (e) {
-    return false;
-  }
+// Same, but refreshes an expired `lm login` access token first (they last 1 h).
+async function getToken(projectRoot) {
+  const t = getStoredToken(projectRoot);
+  if (t) return t;
+  return _auth().freshPat();
+}
+
+function _auth() {
+  return require(path.join(__dirname, "copilot", "auth.js"));
 }
 
 async function login() {
   const projectRoot = process.cwd();
-  const existing = getStoredToken(projectRoot);
-  if (existing) {
-    console.log("Already logged in (found an existing ROXYON_TOKEN).");
-    return existing;
-  }
-
-  if (!hasRoxyonCli()) {
-    console.log(
-      "No ROXYON_TOKEN found, and the `roxyon` CLI isn't on your PATH.\n" +
-      "Install it (`npm install -g @roxyon/cli`), run `roxyon login` once,\n" +
-      "then re-run `lm login` — it reuses whatever `roxyon login` already set up."
-    );
+  const existing = await getToken(projectRoot);
+  if (existing) return existing;
+  console.log("Not signed in to Roxyon yet. Starting `lm login`...");
+  try {
+    await _auth().login({ argv: process.argv.slice(3) });
+  } catch (e) {
+    console.log("lm login failed: " + e.message);
     return null;
   }
-
-  console.log("No ROXYON_TOKEN found. Launching `roxyon login`...");
-  // Inherits stdio so the real, existing interactive login/OTP flow runs
-  // exactly as it does for `roxyon deploy` users — nothing about it is
-  // reimplemented here.
-  const res = spawnSync("roxyon", ["login"], { stdio: "inherit" });
-  if (res.status !== 0) {
-    console.log("`roxyon login` did not complete successfully.");
-    return null;
-  }
-  const after = getStoredToken(projectRoot);
-  if (!after) {
-    console.log(
-      "`roxyon login` finished, but no ROXYON_TOKEN turned up. Set it manually\n" +
-      "(export ROXYON_TOKEN=... or write it to ./" + TOKEN_FILE_NAME + ") and try again."
-    );
-    return null;
-  }
-  console.log("Logged in.");
+  const after = await getToken(projectRoot);
+  if (!after) console.log("Sign-in did not complete. Run `lm login` and try again.");
   return after;
 }
 exports.login = login;
@@ -302,7 +284,7 @@ exports.apiRemove = apiRemove;
 async function resolveVaultApis(projectRoot) {
   const entries = readVaultFile(projectRoot);
   if (entries.length === 0) return [];
-  const token = getStoredToken(projectRoot);
+  const token = await getToken(projectRoot);
   if (!token) {
     console.log("Vault entries exist but no ROXYON_TOKEN is available — run `lm login`. Skipping vault-managed APIs for this build.");
     return [];

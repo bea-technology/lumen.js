@@ -1,6 +1,6 @@
 {
   "name": "@lmjs/cli",
-  "version": "2.5.9",
+  "version": "2.6.0",
   "description": "Command line interface for LumenJS — scaffold, develop, and build LumenJS applications. LumenJS is a tiny, fast reactive JavaScript framework for building web applications and interfaces with standard HTML, CSS, and JavaScript.",
   "bin": {
     "lm": "./dist/bin/commands.js",
@@ -73,7 +73,7 @@
     "access": "public"
   },
   "bugs": {
-    "url": "https://github.com/bea-technology/lumenjs/issues"
+    "url": "https://github.com/bea-technology/lumen.js/issues"
   },
   "license": "MIT",
   "repository": {

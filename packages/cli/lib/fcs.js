@@ -970,7 +970,11 @@ function processCommands(cmd) {
     let cmds = process.argv;
     _bp(cmds);
   } else if (command == "login") {
-    _vault.login();
+    // 2026-10-18: OAuth sign-in to Roxyon (lib/copilot/auth.js); replaces the `roxyon login` shell-out, whose token
+    // lm then looked for in the wrong place.
+    require(path.join(__dirname, "copilot", "auth.js")).loginCommand(process.argv.slice(3));
+  } else if (command == "logout") {
+    require(path.join(__dirname, "copilot", "auth.js")).logout();
   } else if (command == "api") {
     let sub = process.argv[3];
     let name = process.argv[4];
@@ -1406,6 +1410,10 @@ function clear(isSoft) {
 
 function startServer() {
   clear();
+  // Lumen Copilot (2026-10-18): decided here, in the process that owns the terminal, because the dev server runs
+  // under nodemon. The per-run token survives nodemon restarts so an open page keeps working after a save.
+  if (!process.env.LM_COPILOT_TOKEN) process.env.LM_COPILOT_TOKEN = require("crypto").randomBytes(24).toString("hex");
+  if (!process.env.LM_COPILOT_AUTO) process.env.LM_COPILOT_AUTO = process.stdout.isTTY && !process.env.CI ? "1" : "0";
   nodemon({
     script: path.join(__dirname.toString(), "app.js"),
     ext: "view,js,css,json,layout,html",

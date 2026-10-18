@@ -71,6 +71,7 @@ function readViews() {
 // workflow (write a <script src="/js/whatever.js"> tag, same as V1) doesn't
 // change. index.js itself needs no tag at all — it's always compiled and
 // fetched by the core bundle directly (see ws.js's `!_beaTn` bootstrap).
+var _lmServerErrors = []; // errors this dev server hit before Copilot was mounted (handed to it below)
 var _compiledScripts = {}; // request path ("/index.js", "/js/whatever.js") -> compiled code
 (function buildCompiledScriptsMap() {
   try {
@@ -99,6 +100,7 @@ var _compiledScripts = {}; // request path ("/index.js", "/js/whatever.js") -> c
     }
   } catch (e) {
     cl("Failed to compile index.js / project scripts for reactivity — serving them raw. " + e.message);
+    _lmServerErrors.push("Failed to compile index.js / project scripts: " + e.message);
   }
 })();
 
@@ -134,7 +136,25 @@ _pluginsBuildPromise = (async function buildSelectedPluginsBundle() {
 app.use(compression());
 app.use(cookieParser());
 app.use(session);
-async function sendIndexHtml(res) {
+
+// Lumen Copilot (2026-10-18, dev only): the panel + /__lm/copilot/* routes. See lib/copilot/server.js. Mounted
+// before the project's own routes/static files; `lm build` never runs this file.
+var _copilot = null;
+try {
+  const _copilotServer = require(path.join(__dirname, "copilot", "server.js"));
+  if (_copilotServer.isEnabled(config)) {
+    _copilot = _copilotServer.mount(app, {
+      root: `${process.cwd()}`,
+      token: process.env.LM_COPILOT_TOKEN || require("crypto").randomBytes(24).toString("hex"),
+      getPort: function () { var a = server.address(); return a ? a.port : 0; },
+    });
+  }
+} catch (e) {
+  cl("Lumen Copilot is off: " + e.message);
+  _copilot = null;
+}
+
+async function sendIndexHtml(res, req) {
   let file = `${process.cwd()}` + path.sep + `src` + path.sep + `index.html`;
   let html = fcs.v1CompatIndexHtml(fs.readFileSync(file, 'utf8'));
   if (_pluginsBuildPromise) { try { await _pluginsBuildPromise; } catch (e) { } }
@@ -147,12 +167,13 @@ async function sendIndexHtml(res) {
   if (_pluginsCss && _pluginsCss.trim() != "" && html.indexOf("/css/lumenjs-plugins.css") == -1) {
     html = fcs.placePluginsCss(html, `<link href="/css/lumenjs-plugins.css" rel="stylesheet" type="text/css" />`);
   }
+  if (_copilot) html = _copilot.inject(html, req);
   res.type('text/html').send(html);
 }
 
 app.use('/', async function (req, res, next) {
   if (req.path === '/' || req.path === '/index.html') {
-    sendIndexHtml(res);
+    sendIndexHtml(res, req);
     return;
   }
   // A migrated V1 project has no src/js/lm.js yet — serve this CLI's own.
@@ -271,7 +292,7 @@ if (fs.existsSync(`${process.cwd()}` + path.sep + `src` + path.sep + `app.js`)) 
 app.get('*', function (req, res) {
   let nodes = req.params[0].split("/");
   if (nodes.length) nodes.shift();
-  if (fs.existsSync(`${process.cwd()}` + path.sep + `src` + path.sep + `views` + path.sep + nodes[0] + `.view`)) sendIndexHtml(res);
+  if (fs.existsSync(`${process.cwd()}` + path.sep + `src` + path.sep + `views` + path.sep + nodes[0] + `.view`)) sendIndexHtml(res, req);
   else res.sendFile(`${process.cwd()}` + path.sep + `src` + path.sep + `404.html`);
   return;
 });
@@ -279,7 +300,7 @@ app.get('*', function (req, res) {
 app.post('*', function (req, res) {
   let nodes = req.params[0].split("/");
   if (nodes.length) nodes.shift();
-  if (fs.existsSync(`${process.cwd()}` + path.sep + `src` + path.sep + `views` + path.sep + nodes[0] + `.view`)) sendIndexHtml(res);
+  if (fs.existsSync(`${process.cwd()}` + path.sep + `src` + path.sep + `views` + path.sep + nodes[0] + `.view`)) sendIndexHtml(res, req);
   else res.sendFile(`${process.cwd()}` + path.sep + `src` + path.sep + `404.html`);
   return;
 });
@@ -361,6 +382,12 @@ function lmStartListening(port) {
 
 server.on('listening', function () {
   cl(`LumenJS server running at http://${config.server.host}:${server.address().port}/`);
+  if (_copilot) {
+    _lmServerErrors.splice(0).forEach(function (m) { _copilot.noteServerError(m); });
+    if (!require(path.join(__dirname, "copilot", "auth.js")).hasCredentials()) {
+      cl("Lumen Copilot (AI help on this page): run `lm login` to turn it on. New Roxyon accounts get $0.50 of free credit.");
+    }
+  }
   fcs.checkProjectRuntime(process.cwd());
   config.server.port = server.address().port;
   _tpls = readTpls();
