@@ -42,7 +42,19 @@ function _lmUpdateOpts() {
 function _lmShowUpdateBar(opts, latest) {
     if (_lmUpdateShown) return;
     _lmUpdateShown = true;
-    var reload = function () { location.reload(); };
+    // A plain location.reload() can bring the old page back: the browser revalidates index.html and a server whose
+    // ETag/Last-Modified didn't change (e.g. files unpacked with a fixed 1970 mtime and the same size) answers 304,
+    // so the cached page with the old app.<stamp>.js loads again and this bar reappears (only Ctrl+Shift+R helped).
+    // Fetch the page with cache:'reload' first: it always goes to the network and overwrites the cached copy, then
+    // reload. Capped at 4 s so a slow network still reloads.
+    var reload = function () {
+        var done = false;
+        var go = function () { if (!done) { done = true; location.reload(); } };
+        setTimeout(go, 4000);
+        try {
+            fetch(location.href, { cache: 'reload', credentials: 'same-origin' }).then(go, go);
+        } catch (e) { go(); }
+    };
     if (typeof opts.onUpdate === 'function') {
         try { opts.onUpdate({ current: LM_BUILD, latest: latest, reload: reload }); } catch (e) { cl(e); }
         return;

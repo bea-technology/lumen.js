@@ -953,6 +953,10 @@ function processCommands(cmd) {
     startServer();
   } else if (command == "create" || command == "update") {
     let c = process.argv.slice(3, process.argv.length);
+    if (!c.length || (String(c[0])[0] == "-" && c.length < 2)) {
+      console.log("Usage: lm create <project name>   (or lm create -v|-s|-t <name> for a view, sub-view or layout)");
+      return;
+    }
     let t = lw(c[0]);
     create({
       type: t[0] == "-" ? t.split("-").join("") : t,
