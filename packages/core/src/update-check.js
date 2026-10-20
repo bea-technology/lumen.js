@@ -92,6 +92,24 @@ function _lmShowUpdateBar(opts, latest) {
     document.body.appendChild(bar);
 }
 
+// What a deploy can change in index.html besides the app.<stamp>: the page's own scripts/styles (a side file
+// deployed as `core.js?v=6` instead of `?v=5`) and an optional <meta name="lm-build" content="…"> a deploy may bump
+// when it ships files the HTML doesn't name (2.6.2: the console's side-file deploys never showed the bar).
+function _lmAssetSig(html) {
+    var out = [];
+    var re = /<(?:script|link)\b[^>]*?\b(?:src|href)\s*=\s*["']([^"']+)["'][^>]*>/gi, m;
+    while ((m = re.exec(html || ''))) {
+        var u = m[1];
+        if (/^(?:https?:)?\/\//i.test(u) || /^(?:data|blob|mailto):/i.test(u)) continue;   // other sites: not ours to track
+        if (/\.(?:js|mjs|css)(?:[?#]|$)/i.test(u)) out.push(u);
+    }
+    var b = /<meta\b[^>]*name\s*=\s*["']lm-build["'][^>]*content\s*=\s*["']([^"']*)["']/i.exec(html || '')
+        || /<meta\b[^>]*content\s*=\s*["']([^"']*)["'][^>]*name\s*=\s*["']lm-build["']/i.exec(html || '');
+    if (b) out.push('lm-build=' + b[1]);
+    return out.sort().join('|');
+}
+var _lmBaseSig = null;   // the signature of the HTML this tab was built from (first check that saw the same stamp)
+
 function lmCheckForUpdate() {
     var opts = _lmUpdateOpts();
     if (!opts || !LM_BUILD || _lmUpdateShown || typeof fetch !== 'function') return Promise.resolve(false);
@@ -99,9 +117,15 @@ function lmCheckForUpdate() {
     return fetch(url + (url.indexOf('?') > -1 ? '&' : '?') + '_v=' + Date.now(), { cache: 'no-store', credentials: 'same-origin' })
         .then(function (r) { return r.ok ? r.text() : ''; })
         .then(function (html) {
-            var m = /\/js\/app\.(\d+)\.js/.exec(html || '');
+            if (!html) return false;
+            var m = /\/js\/app\.(\d+)\.js/.exec(html);
             var latest = m ? parseInt(m[1], 10) : 0;
             if (latest > LM_BUILD) { _lmShowUpdateBar(opts, latest); return true; }
+            var sig = _lmAssetSig(html);
+            // Baseline = the first fetch with this tab's stamp (not the live DOM: the runtime adds tags to it).
+            // Only a side deploy inside the first ~15 s after load goes unnoticed.
+            if (_lmBaseSig === null) _lmBaseSig = sig;
+            if (latest === LM_BUILD && sig !== _lmBaseSig) { _lmShowUpdateBar(opts, latest); return true; }
             return false;
         })
         .catch(function () { return false; });

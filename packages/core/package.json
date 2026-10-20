@@ -1,6 +1,6 @@
 {
   "name": "@lmjs/core",
-  "version": "2.6.1",
+  "version": "2.6.2",
   "description": "LumenJS reactive core runtime — the reactive engine, HTML/JS AST compiler, realtime socket client, and delegated event listeners powering LumenJS applications.",
   "files": [
     "dist/",
