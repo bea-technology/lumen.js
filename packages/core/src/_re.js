@@ -3473,14 +3473,32 @@ function _reportTplMisuse(doc, par) {
 }
 
 async function renderSection(tx, doc, par, k, sectionsData) {
+    // 2026-10-28: a section is attached only after renderHST() resolves, so every var change that arrived in the
+    // meantime saw it "not connected" and started ANOTHER full render of the same section (and all its nested
+    // sections). A click handler that sets 30 vars rendered the section 30 times, nested ones 30x30...: one
+    // storefront click on a Magma store took 20 s on the main thread ("page unresponsive"). The render already on
+    // its way is reused; changes made meanwhile are applied once it is in the page.
+    if (tx._lmPending) {
+        const re = await tx._lmPending;
+        if (k && re && tx.node && tx.node.isConnected) re.update(k);
+        return re;
+    }
     if (tx.node.isConnected) {
         if (k) {
             tx._re.update(k);
         }
         return tx._re;
     }
+    const pending = _renderSectionNow(tx, doc, par, k, sectionsData);
+    tx._lmPending = pending;
+    try {
+        return await pending;
+    } finally {
+        if (tx._lmPending === pending) tx._lmPending = null;
+    }
+}
 
-
+async function _renderSectionNow(tx, doc, par, k, sectionsData) {
     var hst = doc.children;
 
     // 2026-09-17: `tpl="name"` on a :for element (`<li :for="items as
@@ -3521,18 +3539,8 @@ async function renderSection(tx, doc, par, k, sectionsData) {
     // }
     tx._re = _re;
 
-    // if (doc.type == "sections") {
-
-    //     return _re;
-    // }
-    // cl(tx.key);
-    // cl(par);
-    // cl(hst);
-    // cl(tx);
-    // cl(doc);
-    // cl(_re);
-
-    // cl("section", _re, par);
+    // Hidden (hideSectionCX) while it was being rendered: keep it out of the page.
+    if (tx.isPreConnected === false) return _re;
 
     if (tx.node) {
         tx.replaceWith(tx.node);
@@ -3568,6 +3576,77 @@ async function renderSection(tx, doc, par, k, sectionsData) {
 // `lm build` omits empty HST fields (fcs.js compactHstReplacer); walk() and every effect reads them unconditionally,
 // so restore them once per payload, in place: attrs/ax/evs/ex {}, isV false, children [] on element/section nodes,
 // mss [] on text nodes.
+// 2.7.0, views loaded when first opened. A production build (lm build) may move big views out of the main bundle into
+// js/v/<name>.<hash>.js files and list them in the manifest `_vcLazy` = { <fileKey>: [url, [sub-view fileKeys]] }.
+// Each file calls _lmViewLoaded(fileKey, entry). A view is fetched the first time renderView() needs it; its static
+// sub-views are prefetched as soon as it renders, and the page view of an internal link when the pointer reaches it.
+var _lmViewNavSeq = 0;
+var _lmViewLoads = {};
+function _lmLazyUrl(fileKey) {
+    const m = typeof _vcLazy !== 'undefined' && _vcLazy ? _vcLazy[fileKey] : null;
+    return m ? m[0] : '';
+}
+function _lmViewLoaded(fileKey, entry) {
+    let payload = (typeof _vcData !== 'undefined' && _vcData) || null;
+    if (!payload || !entry) return;
+    if (!payload.views) payload.views = {};
+    _lmHstDefaults({ views: { [fileKey]: entry } });
+    payload.views[fileKey] = entry;
+    const w = _lmViewLoads[fileKey];
+    if (w && w.done) w.done();
+}
+function _lmLoadView(fileKey, tries) {
+    const url = _lmLazyUrl(fileKey);
+    if (!url) return Promise.resolve();
+    let payload = (typeof _vcData !== 'undefined' && _vcData) || null;
+    if (payload && payload.views && payload.views.hasOwnProperty(fileKey)) return Promise.resolve();
+    if (_lmViewLoads[fileKey] && _lmViewLoads[fileKey].p) return _lmViewLoads[fileKey].p;
+    const w = (_lmViewLoads[fileKey] = {});
+    w.p = new Promise(function (resolve, reject) {
+        w.done = resolve;
+        const s = document.createElement('script');
+        s.src = url;
+        s.async = true;
+        s.onerror = function () {
+            s.remove();
+            delete _lmViewLoads[fileKey];
+            // one retry (a dropped connection), then the error is reported by renderView()
+            if (!tries) _lmLoadView(fileKey, 1).then(resolve, reject);
+            else reject(new Error('HTTP error loading ' + url));
+        };
+        s.onload = function () {
+            // the file ran without registering itself (wrong file, an old cache): don't wait forever
+            if (!(payload && payload.views && payload.views.hasOwnProperty(fileKey))) {
+                delete _lmViewLoads[fileKey];
+                reject(new Error(url + ' did not register its view'));
+            }
+        };
+        document.head.appendChild(s);
+    });
+    return w.p;
+}
+function _lmPrefetchFor(fileKey) {
+    const m = typeof _vcLazy !== 'undefined' && _vcLazy ? _vcLazy[fileKey] : null;
+    let subs = m ? m[1] : (typeof _vcSubs !== 'undefined' && _vcSubs ? _vcSubs[fileKey] : null);
+    if (!subs || !subs.length) return;
+    const go = function () { subs.forEach(function (k) { _lmLoadView(k).catch(function () { }); }); };
+    if (typeof requestIdleCallback === 'function') requestIdleCallback(go, { timeout: 2000 }); else setTimeout(go, 200);
+}
+function _lmPrefetchLink(ev) {
+    if (typeof _vcLazy === 'undefined' || !_vcLazy) return;
+    const a = ev.target && ev.target.closest ? ev.target.closest('a[href]') : null;
+    if (!a || a.target === '_blank' || a.origin !== location.origin) return;
+    let seg = a.pathname.replace(/^\/+/, '').split('/')[0];
+    if (!seg) seg = (typeof appSettings !== 'undefined' && appSettings && appSettings.defaultView) || 'home';
+    let key;
+    try { key = btoa('src/views/' + seg + '.view'); } catch (e) { return; }
+    if (_vcLazy[key]) _lmLoadView(key).catch(function () { });
+}
+if (typeof document !== 'undefined' && document.addEventListener) {
+    document.addEventListener('pointerover', _lmPrefetchLink, { passive: true, capture: true });
+    document.addEventListener('touchstart', _lmPrefetchLink, { passive: true, capture: true });
+}
+
 function _lmHstDefaults(payload) {
     function fix(n) {
         if (!n || typeof n !== 'object') return;
@@ -3736,8 +3815,24 @@ async function renderView(n, isSub, d, type = 'views', viewsArr, scopeBase = ["V
         }
     }
 
+    // 2.7.0: a production build can ship big views as separate files, loaded the first time they are opened
+    // (manifest `_vcLazy`, see _lmLoadView()). A page render overtaken by a newer navigation while its view was
+    // loading stops here; a sub-view's host is checked further down (_lmPageOf).
+    if (_payload && type === 'views' && !_payload.views.hasOwnProperty(fileKey) && _lmLazyUrl(fileKey)) {
+        const navSeq = isSub ? 0 : ++_lmViewNavSeq;
+        try {
+            await _lmLoadView(fileKey);
+        } catch (e) {
+            reportLumenError({ stage: 'view-load', error: new Error('could not load view "' + n + '": ' + (e && e.message ? e.message : e)) });
+        }
+        if (!isSub && navSeq !== _lmViewNavSeq) return;
+    } else if (!isSub && type === 'views') {
+        ++_lmViewNavSeq;
+    }
+
     if ((_payload && _payload[type].hasOwnProperty(fileKey)) /*&& _jswacrk.isStarted()*/ && _csswrk.isStarted()) {
         if (isSub) cl("Rendering", n, fileKey);
+        if (type === 'views') _lmPrefetchFor(fileKey);
         var hst = _payload[type][fileKey];
         // var mxes = hst.mxes;
         // hst = hst.hst;

@@ -1394,8 +1394,15 @@ var prevNodes = [];
 function goToNode(d) {
     if (_initialized) {
         prevNodes = clone(nodes);
+        var _fromRoute = _lumenRouteKey;
         nodes = getURLNodes();
-        Promise.resolve(renderView(nodes[0], null, d)).then(_lumenScrollToHash);
+        // 2026-10-31 (owner): a page change starts at the top, like a new page. A `#fragment` scrolls to its
+        // target instead; the first render and a re-render of the same route keep their position.
+        var _newPage = _fromRoute !== null && _fromRoute !== _lumenRouteKey;
+        Promise.resolve(renderView(nodes[0], null, d)).then(function () {
+            if (location.hash && location.hash.length > 1) _lumenScrollToHash();
+            else if (_newPage) st(0);
+        });
     } else {
         setTimeout(function () {
             goToNode(d);

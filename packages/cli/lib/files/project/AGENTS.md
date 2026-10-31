@@ -33,6 +33,8 @@ changing any `.view` file, read the framework reference:
   when the list is a variable. Looping over a computed list (`todos.filter(...)`) gives copies: change
   `todos[i]` instead.
 - Use `?query` parameters for state in a URL. `#fragments` are only for scrolling to an element (2.5.5+).
+- **A page change scrolls to the top by itself (2.6.4+)**: `pushURL()`, route links and Back/Forward all end with `st(0)`.
+  Don't add your own scroll-to-top on navigation; use `st(selector)` only to scroll within a page.
 - Each mounted sub-view (`view="..."`) has its own variables. Pass data in with `@init`, not `:data`.
 - There is no `session` global: use `sessionStorage`.
 - Never put API secrets in `config.json`. Use `lm login` + `lm api set <name>`.

@@ -61,12 +61,8 @@ exports.precompileViewScripts = precompileViewScripts;
 
 // Cut the dev-only block (astring + acorn + walk.js, ~175 KB) out of the runtime `lm build` ships. Only safe when
 // every script was precompiled; an older runtime without the markers is returned unchanged.
-function stripDevOnlyRuntime(src) {
-  const a = src.indexOf("var __lmDevOnlyStart__ = 1;");
-  const b = src.indexOf("var __lmDevOnlyEnd__ = 1;");
-  if (a < 0 || b < a) return src;
-  return src.slice(0, a) + src.slice(b + "var __lmDevOnlyEnd__ = 1;".length);
-}
+// Shared with packages/core/build/cdn.js (the runtime files inside @lmjs/core): one definition, in cdn-runtime.js.
+const stripDevOnlyRuntime = require("./cdn-runtime.js").stripDevOnlyRuntime;
 exports.stripDevOnlyRuntime = stripDevOnlyRuntime;
 
 // The built payload omits HST fields that are empty — "attrs":{}, "ax":{}, "evs":{}, "ex":{}, "isV":false, "mss":[],
@@ -130,6 +126,7 @@ const _pluginsBundle = require(path.join(__dirname, "plugins-esbuild-plugin.js")
 // apis[] entries in at build time, alongside whatever config.json's own
 // apis[] already has (additive, not a replacement).
 const _vault = require(path.join(__dirname, "vault.js"));
+const _cdnRt = require(path.join(__dirname, "cdn-runtime.js"));
 exports.login = _vault.login;
 exports.apiSet = _vault.apiSet;
 exports.apiUpdate = _vault.apiUpdate;
@@ -973,6 +970,9 @@ function processCommands(cmd) {
   } else if (command == "build") {
     let cmds = process.argv;
     _bp(cmds);
+  } else if (command == "cdn-files") {
+    // 2.7.0: writes this version's runtime files for cdn.roxyon.com/lumenjs/<version>/ (the release uploads them).
+    _cdnRt.writeCdnFiles(process.argv[3] || "cdn", stripDevOnlyRuntime);
   } else if (command == "login") {
     // 2026-10-18: OAuth sign-in to Roxyon (lib/copilot/auth.js); replaces the `roxyon login` shell-out, whose token
     // lm then looked for in the wrong place.
@@ -1095,6 +1095,20 @@ async function _bp(cmds) {
 
     let _uncompiledScripts = precompileViewScripts([{ kind: "views", files: _views }, { kind: "layouts", files: _layouts }, { kind: "tpls", files: _tpls }]);
 
+    // A migrated V1 project has no src/js/lm.js yet — use this CLI's own.
+    let _projectRuntime = projectPath + path.sep + "src" + path.sep + "js" + path.sep + "lm.js";
+    let ownRuntime = fs.readFileSync(
+      fs.existsSync(_projectRuntime) ? _projectRuntime : path.join(__dirname, "files", "libs", "lm.js"),
+      "utf8"
+    );
+    // 2.7.0: the runtime from cdn.roxyon.com and big views in their own files (see cdn-runtime.js).
+    let _runtimePlan = _cdnRt.planRuntime({ cmds, config, ownRuntime, precompiled: _uncompiledScripts === 0, stripDevOnlyRuntime });
+    if (_runtimePlan && _runtimePlan.skipped) {
+      spinner.info("Runtime kept inside app.js: " + _runtimePlan.skipped).start("Gathering Required Resources");
+      _runtimePlan = null;
+    }
+    let _split = _cdnRt.splitViews(_views, compactHstReplacer, { cmds, config, runtimeSupportsLazy: ownRuntime.indexOf("function _lmViewLoaded") >= 0 });
+
     let vt =
       `
 var _vcData = {
@@ -1121,6 +1135,7 @@ var _vcData = {
       let _indexJsSrc = _hasOwnDeps
         ? _npmBundle.buildEntryWithImports(projectPath + path.sep + "src" + path.sep + "index.js", projectPath)
         : String(indexJs);
+      if (_split) vt += _split.manifestJs;
       vt += _compiledScripts + "\n" + compileProjectScript(_indexJsSrc, "index");
     } catch (e) {
       spinner.fail("Error compiling index.js: " + (e && e.message ? e.message : e));
@@ -1240,28 +1255,15 @@ var _vcData = {
         return;
       }
     }
-    let js_ = "";
-
-
-    // Node-server build mode removed 2026-09-13 (V2): unused in practice —
-    // every real project shipped --serverless, and the one case needing a
-    // real backend (Console) built its own Swoole stack instead of reaching
-    // for this. Serverless is now the only build output; see PROVENANCE.md
-    // for the fuller reasoning.
-    js_ +=
+    let _tokenJs =
       `
 var _beaTn = "` +
       token_ +
       `";
 ` + (token_ ? "" : "var _lmStatic = true;\n");
-
-    // A migrated V1 project has no src/js/lm.js yet — use this CLI's own.
-    let _projectRuntime = projectPath + path.sep + "src" + path.sep + "js" + path.sep + "lm.js";
-    let ownRuntime = fs.readFileSync(
-      fs.existsSync(_projectRuntime) ? _projectRuntime : path.join(__dirname, "files", "libs", "lm.js"),
-      "utf8"
-    );
-    js_ += (_uncompiledScripts === 0 ? stripDevOnlyRuntime(ownRuntime) : ownRuntime) + "\n" + vt;
+    let _runtimeCode = _uncompiledScripts === 0 ? stripDevOnlyRuntime(ownRuntime) : ownRuntime;
+    // With the CDN runtime, app.js is only the project (views + index.js); the token goes inline before the runtime.
+    let js_ = _runtimePlan ? vt : _tokenJs + _runtimeCode + "\n" + vt;
 
     spinner.succeed("Signing & Securing App").start("Packing & Cleaning...");
     rd(dest);
@@ -1297,22 +1299,36 @@ var _beaTn = "` +
       String(js_)
     );
     let _dT = new Date().getTime();
+    if (_runtimePlan) {
+      let _rtDir = dest + path.sep + "js" + path.sep + "lumenjs" + path.sep + _runtimePlan.version;
+      fs.mkdirSync(_rtDir, { recursive: true });
+      fs.writeFileSync(_rtDir + path.sep + _runtimePlan.file, _runtimePlan.code);
+    }
+    if (_split) {
+      for (const rel in _split.files) {
+        let _f = dest + path.sep + rel.split("/").join(path.sep);
+        fs.mkdirSync(path.dirname(_f), { recursive: true });
+        fs.writeFileSync(_f, _split.files[rel]);
+      }
+    }
     fs.renameSync(
       dest + path.sep + "js" + path.sep + "lm.js",
       dest + path.sep + "js" + path.sep + "app." + _dT + ".js"
     );
     if (!fs.existsSync(dest + path.sep + "css")) fs.mkdirSync(dest + path.sep + "css", { recursive: true });
+    // 2.7.0: CSS and the plugins bundle are named by their content, so a deploy that didn't change them doesn't make
+    // every visitor download them again (app.<stamp>.js keeps its stamp: the update bar relies on it).
+    let _cssAppFile = "app." + _cdnRt.shortHash(String(beaCSSCode)) + ".css";
+    let _stylesFile = "styles.css";
     if (_mainCssName) {
       let _copied = dest + path.sep + "css" + path.sep + _mainCssName;
       if (fs.existsSync(_copied)) fs.unlinkSync(_copied);
-      fs.writeFileSync(dest + path.sep + "css" + path.sep + "app." + _dT + ".css", String(beaCSSCode));
+      fs.writeFileSync(dest + path.sep + "css" + path.sep + _cssAppFile, String(beaCSSCode));
     }
     let _hasStyles = fs.existsSync(dest + path.sep + "css" + path.sep + "styles.css");
     if (_hasStyles) {
-      fs.renameSync(
-        dest + path.sep + "css" + path.sep + "styles.css",
-        dest + path.sep + "css" + path.sep + "styles." + _dT + ".css"
-      );
+      _stylesFile = "styles." + _cdnRt.shortHash(fs.readFileSync(dest + path.sep + "css" + path.sep + "styles.css", "utf8")) + ".css";
+      fs.renameSync(dest + path.sep + "css" + path.sep + "styles.css", dest + path.sep + "css" + path.sep + _stylesFile);
     }
 
     // Per-project selective plugin bundling (2026-09-16) — only engaged if
@@ -1326,21 +1342,38 @@ var _beaTn = "` +
     if (_selectedPlugins.length) {
       let _pluginsJs = await _pluginsBundle.buildSelectedPluginsBundle(_selectedPlugins, projectPath, { minify: true });
       let _pluginsCss = await _pluginsBundle.buildSelectedCss(_selectedPlugins, projectPath + path.sep + "node_modules");
-      fs.writeFileSync(dest + path.sep + "js" + path.sep + "plugins." + _dT + ".js", String(_pluginsJs));
-      _pluginsTags += `\n    <script src="/js/plugins.` + _dT + `.js" type="text/javascript"></script>`;
+      let _pjs = "plugins." + _cdnRt.shortHash(String(_pluginsJs)) + ".js";
+      fs.writeFileSync(dest + path.sep + "js" + path.sep + _pjs, String(_pluginsJs));
+      _pluginsTags += `\n    <script src="/js/` + _pjs + `" type="text/javascript"></script>`;
       if (_pluginsCss && _pluginsCss.trim() != "") {
-        fs.writeFileSync(dest + path.sep + "css" + path.sep + "plugins." + _dT + ".css", String(_pluginsCss));
-        _pluginsCssTag = `<link href="/css/plugins.` + _dT + `.css" rel="stylesheet" type="text/css" />`;
+        let _pcss = "plugins." + _cdnRt.shortHash(String(_pluginsCss)) + ".css";
+        fs.writeFileSync(dest + path.sep + "css" + path.sep + _pcss, String(_pluginsCss));
+        _pluginsCssTag = `<link href="/css/` + _pcss + `" rel="stylesheet" type="text/css" />`;
       }
     }
 
+    if (_split && _split.routes) {
+      indexCode = String(indexCode).split("</head>").join("    " + _cdnRt.routePreload(_split.routes) + "\n</head>");
+    }
+    if (_runtimePlan) {
+      const _lmTag = /<script\b[^>]*\bsrc=["']\/?js\/lm\.js["'][^>]*>\s*<\/script>/i;
+      if (_lmTag.test(indexCode)) {
+        const _tags = _cdnRt.runtimeTags(_runtimePlan, _tokenJs, "/js/app." + _dT + ".js");
+        indexCode = String(indexCode).replace(_lmTag, () => _tags).split("</head>").join("    " + _cdnRt.preconnectTag() + "\n</head>");
+      } else {
+        // index.html loads the runtime some other way: keep it inside app.js, as before 2.7.0.
+        fs.writeFileSync(dest + path.sep + "js" + path.sep + "app." + _dT + ".js", _tokenJs + _runtimeCode + "\n" + vt);
+        fs.rmSync(dest + path.sep + "js" + path.sep + "lumenjs", { recursive: true, force: true });
+        _runtimePlan = null;
+      }
+    }
     let _indexOut = String(indexCode)
         .split("/js/lm.js")
         .join("/js/app." + _dT + ".js")
         .split("/css/styles.css")
-        .join(_hasStyles ? "/css/styles." + _dT + ".css" : "/css/styles.css")
+        .join("/css/" + _stylesFile)
         .split("/css/" + (_mainCssName || "mobius.css"))
-        .join(_mainCssName ? "/css/app." + _dT + ".css" : "/css/mobius.css")
+        .join(_mainCssName ? "/css/" + _cssAppFile : "/css/mobius.css")
         .split("</head>")
         .join(_pluginsTags + "\n</head>");
     // 2026-10-03: plugin CSS goes BEFORE the project's own stylesheets, so the
