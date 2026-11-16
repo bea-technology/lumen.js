@@ -143,7 +143,7 @@ async function buildJqueryPiece(entry) {
       loader: "js",
     },
     bundle: true,
-    format: "cjs",
+    format: "iife",
     platform: "browser",
     target: ["es2019"],
     write: false,
@@ -170,7 +170,7 @@ async function buildCjsFactoryPiece(entry) {
       loader: "js",
     },
     bundle: true,
-    format: "cjs",
+    format: "iife",
     platform: "browser",
     target: ["es2019"],
     write: false,
@@ -182,15 +182,63 @@ async function buildCjsFactoryPiece(entry) {
   return parts.join(";\n");
 }
 
+// 2026-11-08 (2.8.2): a vendor file that is REALLY an ES module must not be concatenated raw into a classic script.
+// The console build on 2.8.1 shipped `plugins.*.js` with a bare `import Gi from "jquery";` after the Iconify block —
+// a SyntaxError that stopped the whole file (no Iconify, no select2, no flickity). This detects such a piece and runs
+// just that one through esbuild (CJS), leaving UMD/"packaged" files on the plain concatenation path above, and the
+// bundle assembly refuses to emit anything that still has a top-level import/export.
+const TOP_LEVEL_ESM = /^[ \t]*(?:import|export)[\s{"'*]/m;
+// 2026-11-08 (2.8.3): esbuild's CJS output for a bundled piece ends with a top-level
+// `module.exports = __toCommonJS(...)`, which is a ReferenceError in a classic script (it killed
+// the jquery-form tail: $.fn.ajaxForm never registered). The pieces are built as IIFE now; this
+// guard makes any future regression fail the build instead of shipping a broken bundle.
+const TOP_LEVEL_CJS = /^[ \t]*module\.exports[ \t]*=[ \t]*__toCommonJS/m;
+function containsEsm(src) {
+  return TOP_LEVEL_ESM.test(String(src));
+}
+
+async function bundleEsmSource(src, resolveDir) {
+  const result = await esbuild.build({
+    stdin: { contents: src, resolveDir, loader: "js" },
+    bundle: true,
+    format: "iife",
+    platform: "browser",
+    target: ["es2019"],
+    write: false,
+    minify: false,
+    logLevel: "silent",
+  });
+  return result.outputFiles[0].text;
+}
+
+function assertNoTopLevelCjs(code) {
+  if (TOP_LEVEL_CJS.test(String(code))) {
+    throw new Error("plugins bundle contains a top-level `module.exports = __toCommonJS(...)` (esbuild CJS output); it would be a ReferenceError as a classic script.");
+  }
+  return code;
+}
+
+function assertNoTopLevelEsm(code) {
+  const m = TOP_LEVEL_ESM.exec(String(code));
+  if (m) {
+    const at = String(code).slice(m.index, m.index + 120).split("\n")[0];
+    throw new Error(`plugins bundle still contains a top-level import/export (${at.trim()}); it would be a SyntaxError as a classic script.`);
+  }
+  return code;
+}
+
 // Every other entry: plain read + patch + concatenate, exactly matching
 // packages/core/build/bundle.js's own buildCoreWithPlugins() — see this
 // file's header comment for why these vendored "packaged"/"dist" UMD
-// files must NOT be run through esbuild's bundler at all.
-function buildPlainPiece(entry) {
+// files must NOT be run through esbuild's bundler at all. An entry that is
+// really ESM is the one exception: it is bundled on its own (above), in
+// the same spirit as jQuery's and select2's pieces.
+async function buildPlainPiece(entry) {
   const parts = [];
   for (const npmPath of [].concat(entry.npm || [])) {
     let src = fs.readFileSync(resolveCoreModule(npmPath), "utf8");
     if (entry.patch) src = entry.patch(src);
+    if (containsEsm(src)) src = await bundleEsmSource(src, CORE_PACKAGE_DIR);
     parts.push(src);
   }
   if (entry.code) parts.push(entry.code);
@@ -284,7 +332,7 @@ async function buildSelectedPluginsBundle(entries, projectRoot, opts) {
   for (const entry of entries) {
     parts.push(await buildEntryPiece(entry));
   }
-  const code = parts.join(";\n");
+  const code = assertNoTopLevelCjs(assertNoTopLevelEsm(parts.join(";\n")));
   // `lm build` ships it minified (V1's whole runtime incl. plugins was ~2 MB; unminified plugins alone were ~1.4 MB
   // on console.roxyon.com). Script-mode transform: top-level names the libraries share stay intact; license
   // comments are kept at the end. `lm serve` keeps it readable.
@@ -294,3 +342,7 @@ async function buildSelectedPluginsBundle(entries, projectRoot, opts) {
   return code;
 }
 exports.buildSelectedPluginsBundle = buildSelectedPluginsBundle;
+exports.containsEsm = containsEsm;
+exports.assertNoTopLevelEsm = assertNoTopLevelEsm;
+exports.assertNoTopLevelCjs = assertNoTopLevelCjs;
+exports.bundleEsmSource = bundleEsmSource;

@@ -1274,6 +1274,15 @@ var _beaTn = "` +
 
     copyDir(`${__dirname}` + path.sep + `files` + path.sep + buildPath, dest);
     copyDir(projectPath + path.sep + "src", dest, "_beajsBuild");
+    // robots.txt / sitemap.xml / the crawler page, unless the project ships its own (lib/seo-files.js, 2026-10-31).
+    try {
+      const _seo = require("./seo-files.js").writeSeoFiles(projectPath, dest, config);
+      if (!_seo.site) spinner.info("No site address (config.json \"domain\" or project_info.WebsiteURL): robots.txt has no Sitemap line and no sitemap.xml was made.");
+      spinner.start("Writing Files...");
+    } catch (e) {
+      spinner.warn("SEO files were not written: " + (e && e.message ? e.message : e));
+      spinner.start("Writing Files...");
+    }
     cd(dest + path.sep + "js");
     cd(dest + path.sep + "css");
     cd(dest + path.sep + "images");

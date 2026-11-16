@@ -5210,9 +5210,14 @@ $("body").on("click touch", "[order]", function (ev) {
     // the real event only ever fires on `window` — can never reach a
     // body-delegated listener without this re-dispatch).
     if (typeof window !== "undefined" && window.addEventListener) {
-        window.addEventListener("orientationchange", function () {
+        // Only the browser's own event counts: ours bubbles from body back up to window, and re-firing that one
+        // looped until "Maximum call stack size exceeded" on every phone rotation (2.8.4, fixed 2.8.5).
+        var reorienting = false;
+        window.addEventListener("orientationchange", function (e) {
+            if (reorienting || (e && e.target !== window)) return;
             if (typeof document !== "undefined" && document.body) {
-                fire(document.body, "orientationchange");
+                reorienting = true;
+                try { fire(document.body, "orientationchange"); } finally { reorienting = false; }
             }
         });
     }

@@ -1,4 +1,2 @@
-Sitemap: https://www.lumenjs.com/sitemap.xml
-
 User-agent: *
-Disallow:
+Allow: /

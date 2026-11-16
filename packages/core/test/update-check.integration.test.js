@@ -18,6 +18,8 @@ http.createServer((req, res) => {
   if (u === '/__deploy') { deployed = Number(req.url.split('=')[1]); res.writeHead(200); return res.end('ok'); }
   if (/^\\/js\\/(app\\.\\d+|lm)\\.js$/.test(u)) { res.writeHead(200, { 'content-type': 'application/javascript' }); return res.end(bundle); }
   if (u === '/dev') { res.writeHead(200, { 'content-type': 'text/html' }); return res.end('<!doctype html><body><div app></div><script src="/js/lm.js"></script></body>'); }
+  // 2.8.0's real order: the runtime is fetched from the CDN (here /js/lm.js) before the app script tag is parsed.
+  if (u === '/cdn') { res.writeHead(200, { 'content-type': 'text/html' }); return res.end('<!doctype html><html><head></head><body><div app></div><script src="/js/lm.js"></script><script src="/js/app.' + deployed + '.js"></script></body></html>'); }
   if (u === '/index.js') { res.writeHead(404); return res.end(''); }
   res.writeHead(200, { 'content-type': 'text/html' }); res.end(page(deployed));
 }).listen(0, '127.0.0.1', function () { process.stdout.write(String(this.address().port) + '\\n'); });
@@ -38,9 +40,10 @@ function open(url, settings) {
             window.Worker = function () { this.postMessage = () => { }; this.addEventListener = () => { }; this.terminate = () => { }; };
             window.AudioContext = function () { this.state = 'running'; this.resume = () => Promise.resolve(); };
             window.fetch = (u, o) => fetch(new URL(u, url).href, o).then((r) => ({ ok: r.ok, text: () => r.text() }));
+            // A real index.html sets appSettings before the runtime loads; the scheduler reads it at DOMContentLoaded.
+            if (settings) window.eval('appSettings = ' + settings + ';');
         } }).then(async (d) => {
         for (let i = 0; i < 100 && typeof d.window.lmCheckForUpdate !== 'function'; i++) await wait(30);
-        d.window.eval('appSettings = ' + (settings || '{}') + ';');
         return d;
     });
 }
@@ -82,6 +85,24 @@ portReady.then(async (port) => {
         d = await open(base + '/', '{ updateCheck: false }');
         await deploy(base, BUILD + 60000);
         check('updateCheck: false turns it off', (await d.window.eval('lmCheckForUpdate()')) === false && !d.window.document.querySelector('.lm-update-bar'));
+        d.window.close();
+
+        // 2.8.0 load order: the CDN runtime runs before the app script tag exists (the 2.8.1 bug).
+        await deploy(base, BUILD);
+        d = await open(base + '/cdn');
+        check('CDN order: the stamp is read lazily from the app script, not at runtime load', d.window.eval('lmBuildStamp()') === BUILD, String(d.window.eval('lmBuildStamp()')));
+        check('CDN order: the first successful read sets LM_BUILD and LM_VERSION', d.window.eval('LM_BUILD') === BUILD && /^\d{4}\.\d\d\.\d\d\.\d{4}$/.test(d.window.eval('LM_VERSION')), d.window.eval('LM_VERSION'));
+        await deploy(base, BUILD + 60000);
+        check('CDN order: an update is detected on that page', (await d.window.eval('lmCheckForUpdate()')) === true && !!d.window.document.querySelector('.lm-update-bar'));
+        d.window.close();
+
+        // ...and the scheduler must start even though the build was unknown at load: no manual lmCheckForUpdate().
+        await deploy(base, BUILD);
+        d = await open(base + '/cdn', '{ updateCheck: { firstCheckMs: 100, interval: 150 } }');
+        await deploy(base, BUILD + 60000);
+        let autoBar = null;
+        for (let i = 0; i < 40 && !autoBar; i++) { await wait(50); autoBar = d.window.document.querySelector('.lm-update-bar'); }
+        check('CDN order: the scheduler shows the bar on its own (no early return when LM_BUILD is unknown)', !!autoBar, autoBar && autoBar.textContent);
         d.window.close();
 
         d = await open(base + '/dev');

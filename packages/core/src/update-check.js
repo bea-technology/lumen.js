@@ -6,13 +6,34 @@
 // Reactor({ updateCheck: false })                 turn it off
 // Reactor({ updateCheck: {
 //     interval: 300000,                           ms between checks (also checks 15s after load and on tab focus)
+//     firstCheckMs: 15000,                        ms before the first check (tests / very fast apps)
 //     message: "A new version is available.",
 //     buttonText: "Reload",
 //     url: "/",                                   page whose HTML carries the current stamp
 //     onUpdate: function (info) { ... }           replaces the built-in bar: info = { current, latest, reload() }
 // } })
-// Globals: LM_BUILD (this page's stamp, 0 in dev), LM_VERSION ("YYYY.MM.DD.HHMM" UTC, "dev"), lmCheckForUpdate().
-var LM_BUILD = (function () {
+// Globals: LM_BUILD (this page's stamp, 0 in dev), LM_VERSION ("YYYY.MM.DD.HHMM" UTC, "dev"), lmBuildStamp(),
+// lmCheckForUpdate().
+//
+// 2026-11-07 (2.8.1): 2.8.0 loads the runtime from the CDN *before* <script src="/js/app.<stamp>.js"> is parsed, so
+// document.currentScript is lm.js and no app script is in the DOM yet. Reading the stamp once at load therefore gave
+// LM_BUILD = 0 on every built site, and the old scheduler's `if (!LM_BUILD) return` switched the check off for good —
+// "new version available" never appeared anywhere. The stamp is now read lazily (cached once found, LM_BUILD/LM_VERSION
+// set on that first successful read) and the scheduler starts on DOMContentLoaded/load regardless of what is known then,
+// retrying a few ticks while the app script is still missing and stopping quietly on dev pages (`lm serve`, no stamp).
+var LM_BUILD = 0;
+var LM_VERSION = 'dev';
+var _lmBuildCache = 0;
+
+function _lmVersionOf(build) {
+    var d = new Date(build);
+    var p = function (n) { return (n < 10 ? '0' : '') + n; };
+    return d.getUTCFullYear() + '.' + p(d.getUTCMonth() + 1) + '.' + p(d.getUTCDate()) + '.' + p(d.getUTCHours()) + p(d.getUTCMinutes());
+}
+
+/** This page's build stamp, read from its own /js/app.<stamp>.js; 0 until that script tag exists (then cached). */
+function lmBuildStamp() {
+    if (_lmBuildCache) return _lmBuildCache;
     try {
         var m = /\/js\/app\.(\d+)\.js/.exec(
             (document.currentScript && document.currentScript.src) ||
@@ -21,15 +42,14 @@ var LM_BUILD = (function () {
                 return s.length ? s[s.length - 1].src : '';
             })()
         );
-        return m ? parseInt(m[1], 10) : 0;
-    } catch (e) { return 0; }
-})();
-var LM_VERSION = (function () {
-    if (!LM_BUILD) return 'dev';
-    var d = new Date(LM_BUILD);
-    var p = function (n) { return (n < 10 ? '0' : '') + n; };
-    return d.getUTCFullYear() + '.' + p(d.getUTCMonth() + 1) + '.' + p(d.getUTCDate()) + '.' + p(d.getUTCHours()) + p(d.getUTCMinutes());
-})();
+        _lmBuildCache = (m && parseInt(m[1], 10)) || 0;
+    } catch (e) { _lmBuildCache = 0; }
+    if (_lmBuildCache) {
+        LM_BUILD = _lmBuildCache;
+        LM_VERSION = _lmVersionOf(_lmBuildCache);
+    }
+    return _lmBuildCache;
+}
 
 var _lmUpdateShown = false;
 
@@ -56,7 +76,7 @@ function _lmShowUpdateBar(opts, latest) {
         } catch (e) { go(); }
     };
     if (typeof opts.onUpdate === 'function') {
-        try { opts.onUpdate({ current: LM_BUILD, latest: latest, reload: reload }); } catch (e) { cl(e); }
+        try { opts.onUpdate({ current: lmBuildStamp(), latest: latest, reload: reload }); } catch (e) { cl(e); }
         return;
     }
     if (!document.getElementById('lm-update-style')) {
@@ -111,8 +131,9 @@ function _lmAssetSig(html) {
 var _lmBaseSig = null;   // the signature of the HTML this tab was built from (first check that saw the same stamp)
 
 function lmCheckForUpdate() {
+    var build = lmBuildStamp();
     var opts = _lmUpdateOpts();
-    if (!opts || !LM_BUILD || _lmUpdateShown || typeof fetch !== 'function') return Promise.resolve(false);
+    if (!opts || !build || _lmUpdateShown || typeof fetch !== 'function') return Promise.resolve(false);
     var url = opts.url || '/';
     return fetch(url + (url.indexOf('?') > -1 ? '&' : '?') + '_v=' + Date.now(), { cache: 'no-store', credentials: 'same-origin' })
         .then(function (r) { return r.ok ? r.text() : ''; })
@@ -120,26 +141,44 @@ function lmCheckForUpdate() {
             if (!html) return false;
             var m = /\/js\/app\.(\d+)\.js/.exec(html);
             var latest = m ? parseInt(m[1], 10) : 0;
-            if (latest > LM_BUILD) { _lmShowUpdateBar(opts, latest); return true; }
+            if (latest > build) { _lmShowUpdateBar(opts, latest); return true; }
             var sig = _lmAssetSig(html);
             // Baseline = the first fetch with this tab's stamp (not the live DOM: the runtime adds tags to it).
             // Only a side deploy inside the first ~15 s after load goes unnoticed.
             if (_lmBaseSig === null) _lmBaseSig = sig;
-            if (latest === LM_BUILD && sig !== _lmBaseSig) { _lmShowUpdateBar(opts, latest); return true; }
+            if (latest === build && sig !== _lmBaseSig) { _lmShowUpdateBar(opts, latest); return true; }
             return false;
         })
         .catch(function () { return false; });
 }
 
 (function () {
-    if (!LM_BUILD) return;
-    document.addEventListener('visibilitychange', function () {
-        if (document.visibilityState === 'visible') lmCheckForUpdate();
-    });
-    setTimeout(function () {
-        lmCheckForUpdate();
-        var o = _lmUpdateOpts();
-        var every = o && o.interval > 0 ? o.interval : 5 * 60 * 1000;
-        if (o) setInterval(lmCheckForUpdate, every);
-    }, 15000);
+    function start() {
+        // The app script tag is in the DOM by now even in the 2.8.0 CDN order, so read the stamp once here: LM_BUILD /
+        // LM_VERSION are correct as early as they can be, and the tick below only re-reads when that was still too early.
+        lmBuildStamp();
+        document.addEventListener('visibilitychange', function () {
+            if (document.visibilityState === 'visible') lmCheckForUpdate();
+        });
+        var opts = _lmUpdateOpts();
+        if (!opts) return;   // updateCheck: false
+        var first = opts.firstCheckMs > 0 ? opts.firstCheckMs : 15000;
+        var tries = 0;
+        function tick() {
+            var o = _lmUpdateOpts();
+            if (!o) return;
+            if (!lmBuildStamp()) {
+                // The CDN runtime runs before the app script tag exists; retry a little, then stop quietly (lm serve).
+                tries += 1;
+                if (tries < 20) setTimeout(tick, first);
+                return;
+            }
+            lmCheckForUpdate();
+            var every = o.interval > 0 ? o.interval : 5 * 60 * 1000;
+            setInterval(lmCheckForUpdate, every);
+        }
+        setTimeout(tick, first);
+    }
+    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', start);
+    else start();
 })();

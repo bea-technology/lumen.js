@@ -169,6 +169,13 @@ async function main() {
         win.document.body.addEventListener('orientationchange', () => log.push('fired'));
         win.dispatchEvent(new win.Event('orientationchange'));
         check('a real window-level orientationchange re-dispatches on document.body', log.includes('fired'), JSON.stringify(log));
+        // 2.8.4 bug: the re-dispatched event bubbles back to window and was re-fired forever (stack overflow in Chrome).
+        // jsdom may stop the bubble at document, so make the bubble reach window explicitly, as Chrome does.
+        log.length = 0;
+        win.document.addEventListener('orientationchange', (e) => { if (e.target === win.document.body) win.dispatchEvent(new win.CustomEvent('orientationchange', { bubbles: true, detail: 'bubbled' })); });
+        let err = null;
+        try { win.dispatchEvent(new win.Event('orientationchange')); } catch (e) { err = e; }
+        check('the re-dispatch does not loop when it bubbles back to window', !err && log.length === 1, JSON.stringify({ n: log.length, err: err && String(err) }));
     }
 
     // ---- _findByAtAttrNames: real bug found and fixed alongside the
